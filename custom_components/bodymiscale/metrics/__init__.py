@@ -222,26 +222,37 @@ class BodyScaleMetricsHandler:
         if value != STATE_UNAVAILABLE:
             value = float(value)
 
-        if entity_id == self._config[CONF_SENSOR_WEIGHT]:
-            if self._is_valid(
-                CONF_SENSOR_WEIGHT, value, CONSTRAINT_WEIGHT_MIN, CONSTRAINT_WEIGHT_MAX
-            ):
-                if new_state.attributes.get(ATTR_UNIT_OF_MEASUREMENT) == UNIT_POUNDS:
-                    value = value * 0.45359237
+        # Only publish for correct person
+        skip = False
+        MAX_WEIGHT_JOMA = 75
+        if self._config[CONF_GENDER] == Gender.MALE and \
+            self._config[CONF_SENSOR_WEIGHT] < MAX_WEIGHT_JOMA:
+            skip = True
+        if self._config[CONF_GENDER] == Gender.FEMALE and \
+            self._config[CONF_SENSOR_WEIGHT] > MAX_WEIGHT_JOMA:
+            skip = True
 
-                self._update_available_metric(Metric.WEIGHT, value)
-        elif entity_id == self._config.get(CONF_SENSOR_IMPEDANCE, None):
-            if self._is_valid(
-                CONF_SENSOR_IMPEDANCE,
-                value,
-                CONSTRAINT_IMPEDANCE_MIN,
-                CONSTRAINT_IMPEDANCE_MAX,
-            ):
-                self._update_available_metric(Metric.IMPEDANCE, value)
-        else:
-            raise HomeAssistantError(
-                f"Unknown reading from sensor {entity_id}: {value}"
-            )
+        if not skip:
+            if entity_id == self._config[CONF_SENSOR_WEIGHT]:
+                if self._is_valid(
+                    CONF_SENSOR_WEIGHT, value, CONSTRAINT_WEIGHT_MIN, CONSTRAINT_WEIGHT_MAX
+                ):
+                    if new_state.attributes.get(ATTR_UNIT_OF_MEASUREMENT) == UNIT_POUNDS:
+                        value = value * 0.45359237
+
+                    self._update_available_metric(Metric.WEIGHT, value)
+            elif entity_id == self._config.get(CONF_SENSOR_IMPEDANCE, None):
+                if self._is_valid(
+                    CONF_SENSOR_IMPEDANCE,
+                    value,
+                    CONSTRAINT_IMPEDANCE_MIN,
+                    CONSTRAINT_IMPEDANCE_MAX,
+                ):
+                    self._update_available_metric(Metric.IMPEDANCE, value)
+            else:
+                raise HomeAssistantError(
+                    f"Unknown reading from sensor {entity_id}: {value}"
+                )
 
     def _is_valid(
         self,
