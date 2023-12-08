@@ -262,6 +262,9 @@ class BodyScaleMetricsHandler:
                         old_weight > SEPARATOR_MAX_WEIGHT_JOMA:
                         _LOGGER.debug("Detected Max. Do not perform impedance update on object instance Joma")
                         skip = True
+                else:
+                    _LOGGER.debug("Skip impedance update. No weight data is available yet. Therefore mapping to person (Max|Joma) cannot be established")
+                    skip = True
 
                 if not skip:
                     self._update_available_metric(Metric.IMPEDANCE, value)
