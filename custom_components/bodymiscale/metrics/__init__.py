@@ -222,41 +222,53 @@ class BodyScaleMetricsHandler:
 
         if value != STATE_UNAVAILABLE:
             value = float(value)
+            
+        if entity_id == self._config[CONF_SENSOR_WEIGHT]:
+            if self._is_valid(
+                CONF_SENSOR_WEIGHT, value, CONSTRAINT_WEIGHT_MIN, CONSTRAINT_WEIGHT_MAX
+            ):
+                # Only publish for correct person
+                skip = False
+                if self._config[CONF_GENDER] == Gender.MALE and \
+                    value < SEPARATOR_MAX_WEIGHT_JOMA:
+                    _LOGGER.debug("Detected Joma. Do not perform weight update on object instance Max")
+                    skip = True
+                if self._config[CONF_GENDER] == Gender.FEMALE and \
+                    value > SEPARATOR_MAX_WEIGHT_JOMA:
+                    _LOGGER.debug("Detected Max. Do not perform weight update on object instance Joma")
+                    skip = True
 
-        # Only publish for correct person
-        old_weight = self._available_metrics.get(Metric.WEIGHT, None)
-        _LOGGER.debug(f"Old weight: {old_weight}")
-        skip = False
-        if old_weight is not None:
-            if self._config[CONF_GENDER] == Gender.MALE and \
-                old_weight < SEPARATOR_MAX_WEIGHT_JOMA:
-                _LOGGER.debug("Detected Joma. Do not perform update on object instance Max")
-                skip = True
-            if self._config[CONF_GENDER] == Gender.FEMALE and \
-                old_weight > SEPARATOR_MAX_WEIGHT_JOMA:
-                _LOGGER.debug("Detected Max. Do not perform update on object instance Joma")
-                skip = True
-
-        if not skip:
-            if entity_id == self._config[CONF_SENSOR_WEIGHT]:
-                if self._is_valid(
-                    CONF_SENSOR_WEIGHT, value, CONSTRAINT_WEIGHT_MIN, CONSTRAINT_WEIGHT_MAX
-                ):
+                if not skip:
                     if new_state.attributes.get(ATTR_UNIT_OF_MEASUREMENT) == UNIT_POUNDS:
                         value = value * 0.45359237
                     self._update_available_metric(Metric.WEIGHT, value)
-            elif entity_id == self._config.get(CONF_SENSOR_IMPEDANCE, None):
-                if self._is_valid(
-                    CONF_SENSOR_IMPEDANCE,
-                    value,
-                    CONSTRAINT_IMPEDANCE_MIN,
-                    CONSTRAINT_IMPEDANCE_MAX,
-                ):
+        elif entity_id == self._config.get(CONF_SENSOR_IMPEDANCE, None):
+            if self._is_valid(
+                CONF_SENSOR_IMPEDANCE,
+                value,
+                CONSTRAINT_IMPEDANCE_MIN,
+                CONSTRAINT_IMPEDANCE_MAX,
+            ):
+                # Only publish for correct person
+                old_weight = self._available_metrics.get(Metric.WEIGHT, None)
+                _LOGGER.debug(f"Old weight: {old_weight}")
+                skip = False
+                if old_weight is not None:
+                    if self._config[CONF_GENDER] == Gender.MALE and \
+                        old_weight < SEPARATOR_MAX_WEIGHT_JOMA:
+                        _LOGGER.debug("Detected Joma. Do not perform impedance update on object instance Max")
+                        skip = True
+                    if self._config[CONF_GENDER] == Gender.FEMALE and \
+                        old_weight > SEPARATOR_MAX_WEIGHT_JOMA:
+                        _LOGGER.debug("Detected Max. Do not perform impedance update on object instance Joma")
+                        skip = True
+
+                if not skip:
                     self._update_available_metric(Metric.IMPEDANCE, value)
-            else:
-                raise HomeAssistantError(
-                    f"Unknown reading from sensor {entity_id}: {value}"
-                )
+        else:
+            raise HomeAssistantError(
+                f"Unknown reading from sensor {entity_id}: {value}"
+            )
 
     def _is_valid(
         self,
