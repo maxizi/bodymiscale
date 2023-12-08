@@ -16,6 +16,7 @@ from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, State, callb
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.typing import StateType
+from homeassistant.const import CONF_NAME
 
 from custom_components.bodymiscale.metrics.scale import Scale
 from custom_components.bodymiscale.util import get_age
@@ -216,7 +217,7 @@ class BodyScaleMetricsHandler:
             return
 
         value = new_state.state
-        _LOGGER.debug("Received callback from %s with value %s", entity_id, value)
+        _LOGGER.debug("Received callback from %s with value %s for config name %s", entity_id, value, CONF_NAME)
         if value == STATE_UNKNOWN:
             return
 
@@ -250,16 +251,16 @@ class BodyScaleMetricsHandler:
                 CONSTRAINT_IMPEDANCE_MAX,
             ):
                 # Only publish for correct person
-                old_weight = self._available_metrics.get(Metric.WEIGHT, None)
-                _LOGGER.debug(f"Old weight: {old_weight}")
+                weight = self._available_metrics.get(Metric.WEIGHT, None)
+                _LOGGER.debug(f"Current weight: {weight}")
                 skip = False
-                if old_weight is not None:
+                if weight is not None:
                     if self._config[CONF_GENDER] == Gender.MALE and \
-                        old_weight < SEPARATOR_MAX_WEIGHT_JOMA:
+                        weight < SEPARATOR_MAX_WEIGHT_JOMA:
                         _LOGGER.debug("Detected Joma. Do not perform impedance update on object instance Max")
                         skip = True
                     if self._config[CONF_GENDER] == Gender.FEMALE and \
-                        old_weight > SEPARATOR_MAX_WEIGHT_JOMA:
+                        weight > SEPARATOR_MAX_WEIGHT_JOMA:
                         _LOGGER.debug("Detected Max. Do not perform impedance update on object instance Joma")
                         skip = True
                 else:
