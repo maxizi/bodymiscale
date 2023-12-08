@@ -222,39 +222,39 @@ class BodyScaleMetricsHandler:
         if value != STATE_UNAVAILABLE:
             value = float(value)
 
-        # Only publish for correct person
-        skip = False
-        MAX_WEIGHT_JOMA = 75
-        if self._config[CONF_GENDER] == Gender.MALE and \
-            int(self._config[CONF_SENSOR_WEIGHT]) < MAX_WEIGHT_JOMA:
-            _LOGGER.info("Detected Joma. Do not perform update on Max")
-            skip = True
-        if self._config[CONF_GENDER] == Gender.FEMALE and \
-            int(self._config[CONF_SENSOR_WEIGHT]) > MAX_WEIGHT_JOMA:
-            _LOGGER.info("Detected Max. Do not perform update on Joma")
-            skip = True
+        if entity_id == self._config[CONF_SENSOR_WEIGHT]:
+            if self._is_valid(
+                CONF_SENSOR_WEIGHT, value, CONSTRAINT_WEIGHT_MIN, CONSTRAINT_WEIGHT_MAX
+            ):
+                # Only publish for correct person
+                skip = False
+                MAX_WEIGHT_JOMA = 75
+                if self._config[CONF_GENDER] == Gender.MALE and \
+                    int(self._config[CONF_SENSOR_WEIGHT]) < MAX_WEIGHT_JOMA:
+                    _LOGGER.debug("Detected Joma. Do not perform update on Max")
+                    skip = True
+                if self._config[CONF_GENDER] == Gender.FEMALE and \
+                    int(self._config[CONF_SENSOR_WEIGHT]) > MAX_WEIGHT_JOMA:
+                    _LOGGER.debug("Detected Max. Do not perform update on Joma")
+                    skip = True
 
-        if not skip:
-            if entity_id == self._config[CONF_SENSOR_WEIGHT]:
-                if self._is_valid(
-                    CONF_SENSOR_WEIGHT, value, CONSTRAINT_WEIGHT_MIN, CONSTRAINT_WEIGHT_MAX
-                ):
+                if not skip:
                     if new_state.attributes.get(ATTR_UNIT_OF_MEASUREMENT) == UNIT_POUNDS:
                         value = value * 0.45359237
-
                     self._update_available_metric(Metric.WEIGHT, value)
-            elif entity_id == self._config.get(CONF_SENSOR_IMPEDANCE, None):
-                if self._is_valid(
-                    CONF_SENSOR_IMPEDANCE,
-                    value,
-                    CONSTRAINT_IMPEDANCE_MIN,
-                    CONSTRAINT_IMPEDANCE_MAX,
-                ):
-                    self._update_available_metric(Metric.IMPEDANCE, value)
-            else:
-                raise HomeAssistantError(
-                    f"Unknown reading from sensor {entity_id}: {value}"
-                )
+
+        elif entity_id == self._config.get(CONF_SENSOR_IMPEDANCE, None):
+            if self._is_valid(
+                CONF_SENSOR_IMPEDANCE,
+                value,
+                CONSTRAINT_IMPEDANCE_MIN,
+                CONSTRAINT_IMPEDANCE_MAX,
+            ):
+                self._update_available_metric(Metric.IMPEDANCE, value)
+        else:
+            raise HomeAssistantError(
+                f"Unknown reading from sensor {entity_id}: {value}"
+            )
 
     def _is_valid(
         self,
