@@ -225,15 +225,17 @@ class BodyScaleMetricsHandler:
 
         # Only publish for correct person
         old_weight = self._available_metrics.get(Metric.WEIGHT, None)
+        _LOGGER.debug(f"Old weight: {old_weight}")
         skip = False
-        if self._config[CONF_GENDER] == Gender.MALE and \
-            old_weight < SEPARATOR_MAX_WEIGHT_JOMA:
-            _LOGGER.debug("Detected Joma. Do not perform update on object instance Max")
-            skip = True
-        if self._config[CONF_GENDER] == Gender.FEMALE and \
-            old_weight > SEPARATOR_MAX_WEIGHT_JOMA:
-            _LOGGER.debug("Detected Max. Do not perform update on object instance Joma")
-            skip = True
+        if old_weight is not None:
+            if self._config[CONF_GENDER] == Gender.MALE and \
+                old_weight < SEPARATOR_MAX_WEIGHT_JOMA:
+                _LOGGER.debug("Detected Joma. Do not perform update on object instance Max")
+                skip = True
+            if self._config[CONF_GENDER] == Gender.FEMALE and \
+                old_weight > SEPARATOR_MAX_WEIGHT_JOMA:
+                _LOGGER.debug("Detected Max. Do not perform update on object instance Joma")
+                skip = True
 
         if not skip:
             if entity_id == self._config[CONF_SENSOR_WEIGHT]:
