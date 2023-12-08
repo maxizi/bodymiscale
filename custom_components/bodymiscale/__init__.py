@@ -41,10 +41,8 @@ from .const import (
     PROBLEM_NONE,
     STARTUP_MESSAGE,
     UPDATE_DELAY,
-    MAX_WEIGHT_JOMA,
 )
 from .entity import BodyScaleBaseEntity
-from .models import Gender
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -211,35 +209,23 @@ class Bodymiscale(BodyScaleBaseEntity):
     @property
     def state_attributes(self) -> dict[str, Any]:
         """Return the attributes of the entity."""
-        # Only publish for correct person
-        skip = False
-        if self._handler.config[CONF_GENDER] == Gender.MALE and \
-            self._handler._available_metrics[CONF_SENSOR_WEIGHT] < MAX_WEIGHT_JOMA:
-            skip = True
-        if self._handler.config[CONF_GENDER] == Gender.FEMALE and \
-            self._handler._available_metrics[CONF_SENSOR_WEIGHT] > MAX_WEIGHT_JOMA:
-            skip = True
-        
-        if skip:
-            attrib = {}
-        else:
-            attrib = {
-                CONF_HEIGHT: self._handler.config[CONF_HEIGHT],
-                CONF_GENDER: self._handler.config[CONF_GENDER].value,
-                ATTR_IDEAL: get_ideal_weight(self._handler.config),
-                ATTR_AGE: get_age(self._handler.config[CONF_BIRTHDAY]),
-                **self._available_metrics,
-            }
+        attrib = {
+            CONF_HEIGHT: self._handler.config[CONF_HEIGHT],
+            CONF_GENDER: self._handler.config[CONF_GENDER].value,
+            ATTR_IDEAL: get_ideal_weight(self._handler.config),
+            ATTR_AGE: get_age(self._handler.config[CONF_BIRTHDAY]),
+            **self._available_metrics,
+        }
 
-            if Metric.BMI.value in attrib:
-                attrib[ATTR_BMILABEL] = get_bmi_label(attrib[Metric.BMI.value])
+        if Metric.BMI.value in attrib:
+            attrib[ATTR_BMILABEL] = get_bmi_label(attrib[Metric.BMI.value])
 
-            if Metric.FAT_MASS_2_IDEAL_WEIGHT.value in attrib:
-                value = attrib.pop(Metric.FAT_MASS_2_IDEAL_WEIGHT.value)
+        if Metric.FAT_MASS_2_IDEAL_WEIGHT.value in attrib:
+            value = attrib.pop(Metric.FAT_MASS_2_IDEAL_WEIGHT.value)
 
-                if value < 0:
-                    attrib[ATTR_FATMASSTOLOSE] = value * -1
-                else:
-                    attrib[ATTR_FATMASSTOGAIN] = value
-            
+            if value < 0:
+                attrib[ATTR_FATMASSTOLOSE] = value * -1
+            else:
+                attrib[ATTR_FATMASSTOGAIN] = value
+
         return attrib
