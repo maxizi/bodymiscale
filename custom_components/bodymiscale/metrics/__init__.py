@@ -230,11 +230,11 @@ class BodyScaleMetricsHandler:
                 skip = False
                 MAX_WEIGHT_JOMA = 75
                 if self._config[CONF_GENDER] == Gender.MALE and \
-                    int(self._config[CONF_SENSOR_WEIGHT]) < MAX_WEIGHT_JOMA:
+                    value < MAX_WEIGHT_JOMA:
                     _LOGGER.debug("Detected Joma. Do not perform update on Max")
                     skip = True
                 if self._config[CONF_GENDER] == Gender.FEMALE and \
-                    int(self._config[CONF_SENSOR_WEIGHT]) > MAX_WEIGHT_JOMA:
+                    value > MAX_WEIGHT_JOMA:
                     _LOGGER.debug("Detected Max. Do not perform update on Joma")
                     skip = True
 
