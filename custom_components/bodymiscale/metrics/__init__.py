@@ -16,7 +16,6 @@ from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, State, callb
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.typing import StateType
-from homeassistant.const import CONF_NAME
 
 from custom_components.bodymiscale.metrics.scale import Scale
 from custom_components.bodymiscale.util import get_age
@@ -217,7 +216,7 @@ class BodyScaleMetricsHandler:
             return
 
         value = new_state.state
-        _LOGGER.debug("Received callback from %s with value %s for config name %s", entity_id, value, CONF_NAME)
+        _LOGGER.debug("Received callback from %s with value %s for gender %s, height %s, birthday %s", entity_id, value, self._config[CONF_GENDER], self._config[CONF_HEIGHT], self._config[CONF_BIRTHDAY])
         if value == STATE_UNKNOWN:
             return
 
