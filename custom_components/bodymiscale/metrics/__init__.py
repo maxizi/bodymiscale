@@ -241,7 +241,10 @@ class BodyScaleMetricsHandler:
                 if not skip:
                     if new_state.attributes.get(ATTR_UNIT_OF_MEASUREMENT) == UNIT_POUNDS:
                         value = value * 0.45359237
+                    _LOGGER.debug("Trigger weight update")
                     self._update_available_metric(Metric.WEIGHT, value)
+                else:
+                    _LOGGER.debug("Skip weight update")
         elif entity_id == self._config.get(CONF_SENSOR_IMPEDANCE, None):
             if self._is_valid(
                 CONF_SENSOR_IMPEDANCE,
@@ -267,7 +270,10 @@ class BodyScaleMetricsHandler:
                     skip = True
 
                 if not skip:
+                    _LOGGER.debug("Trigger impedance update")
                     self._update_available_metric(Metric.IMPEDANCE, value)
+                else:
+                    _LOGGER.debug("Skip impedance update")
         else:
             raise HomeAssistantError(
                 f"Unknown reading from sensor {entity_id}: {value}"
